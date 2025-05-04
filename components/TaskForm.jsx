@@ -10,6 +10,7 @@ export default function TaskForm({
   teamMembers,
   onSubmit,
   isSubmitting,
+  initialAssignedTo,
 }) {
   const [isRecurring, setIsRecurring] = useState(task?.isRecurring || false);
   const [selectedTags, setSelectedTags] = useState(task?.tags || []);
@@ -34,20 +35,31 @@ export default function TaskForm({
         : "",
       priority: task?.priority || "medium",
       status: task?.status || "todo",
-      assignedTo: task?.assignedTo?._id || "",
+      assignedTo: initialAssignedTo || task?.assignedTo?._id || "",
       isRecurring: task?.isRecurring || false,
       recurringPattern: task?.recurringPattern || "none",
     },
   });
 
-  // If team members weren't provided, fetch them
+  // If team members weren't provided, fetch them from the user's team
   useEffect(() => {
     if (!teamMembers && !loadingTeamMembers) {
       setLoadingTeamMembers(true);
+
+      // First get current user to get team ID
       axios
-        .get("/api/users")
+        .get("/api/auth/me")
         .then((response) => {
-          setAvailableTeamMembers(response.data.users);
+          const user = response.data.user;
+          if (user.team) {
+            // Fetch team members
+            return axios.get(`/api/teams/${user.team}`);
+          } else {
+            throw new Error("User is not in a team");
+          }
+        })
+        .then((response) => {
+          setAvailableTeamMembers(response.data.members);
         })
         .catch((error) => {
           console.error("Error fetching team members:", error);
@@ -57,6 +69,13 @@ export default function TaskForm({
         });
     }
   }, [teamMembers, loadingTeamMembers]);
+
+  // Set initialAssignedTo when available
+  useEffect(() => {
+    if (initialAssignedTo && initialAssignedTo !== "") {
+      setValue("assignedTo", initialAssignedTo);
+    }
+  }, [initialAssignedTo, setValue]);
 
   // Watch for isRecurring changes
   useEffect(() => {

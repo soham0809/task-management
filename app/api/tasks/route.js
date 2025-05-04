@@ -134,6 +134,34 @@ export const POST = withAuth(async (req, user) => {
         // Set the creator to current user
         taskData.creator = user._id;
 
+        // Check if user has a team
+        if (!user.team) {
+            return NextResponse.json({
+                success: false,
+                message: 'You must be part of a team to create tasks'
+            }, { status: 400 });
+        }
+
+        // If task is assigned to someone, verify they are in the same team
+        if (taskData.assignedTo) {
+            const assignedUser = await User.findById(taskData.assignedTo);
+
+            if (!assignedUser) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'Assigned user not found'
+                }, { status: 400 });
+            }
+
+            // Check if assignee is in the same team
+            if (!assignedUser.team || assignedUser.team.toString() !== user.team.toString()) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'You can only assign tasks to members of your team'
+                }, { status: 403 });
+            }
+        }
+
         // Create the task
         const task = await Task.create(taskData);
 
@@ -168,6 +196,7 @@ export const POST = withAuth(async (req, user) => {
                 taskId: task._id,
                 title: task.title,
                 assignedTo: task.assignedTo,
+                teamId: user.team
             },
         });
 

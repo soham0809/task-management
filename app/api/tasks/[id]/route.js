@@ -15,6 +15,14 @@ export const GET = withAuth(async (req, user) => {
         const pathParts = url.pathname.split('/');
         const taskId = pathParts[pathParts.length - 1];
 
+        // Skip special route names used as pages
+        if (taskId === 'assigned' || taskId === 'my-tasks') {
+            return NextResponse.json({
+                success: false,
+                message: 'Invalid task ID'
+            }, { status: 400 });
+        }
+
         // Find the task
         const task = await Task.findById(taskId)
             .populate('creator', 'name email')

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import AuthLayout from "@/components/AuthLayout";
 import TaskForm from "@/components/TaskForm";
@@ -9,8 +9,12 @@ import Link from "next/link";
 
 export default function NewTask() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const assignToId = searchParams.get("assignTo");
+
   const [user, setUser] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [userTeam, setUserTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -22,9 +26,21 @@ export default function NewTask() {
         const userResponse = await axios.get("/api/auth/me");
         setUser(userResponse.data.user);
 
-        // Fetch team members for assignment
-        const teamResponse = await axios.get("/api/users");
-        setTeamMembers(teamResponse.data.users);
+        // Check if user is in a team
+        if (!userResponse.data.user.team) {
+          setError(
+            "You must be part of a team to create tasks. Please join or create a team first."
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Fetch team members from user's team
+        const teamResponse = await axios.get(
+          `/api/teams/${userResponse.data.user.team}`
+        );
+        setUserTeam(teamResponse.data.team);
+        setTeamMembers(teamResponse.data.members);
       } catch (error) {
         console.error("Error fetching data:", error);
         if (error.response?.status === 401) {
@@ -94,6 +110,11 @@ export default function NewTask() {
             </svg>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create New Task</h1>
+          {userTeam && (
+            <span className="ml-4 text-sm text-gray-500">
+              Team: {userTeam.name}
+            </span>
+          )}
         </div>
 
         {error && (
@@ -101,18 +122,43 @@ export default function NewTask() {
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                {!user?.team && (
+                  <div className="mt-2">
+                    <Link
+                      href="/team"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-500"
+                    >
+                      Go to team page to join or create a team
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        <div className="bg-white shadow rounded-lg p-6">
-          <TaskForm
-            teamMembers={teamMembers}
-            onSubmit={handleSubmit}
-            isSubmitting={submitting}
-          />
-        </div>
+        {user?.team ? (
+          <div className="bg-white shadow rounded-lg p-6">
+            <TaskForm
+              teamMembers={teamMembers}
+              onSubmit={handleSubmit}
+              isSubmitting={submitting}
+              initialAssignedTo={assignToId}
+            />
+          </div>
+        ) : (
+          <div className="bg-white shadow rounded-lg p-6 text-center">
+            <p className="text-gray-700 mb-4">
+              You need to be part of a team to create and assign tasks.
+            </p>
+            <Link
+              href="/team"
+              className="inline-block bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded"
+            >
+              Join or Create a Team
+            </Link>
+          </div>
+        )}
       </div>
     </AuthLayout>
   );

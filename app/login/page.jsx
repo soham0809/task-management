@@ -33,7 +33,16 @@ export default function Login() {
       });
 
       if (response.data.success) {
-        router.push("/dashboard");
+        // Check if user has a team
+        const userResponse = await axios.get("/api/auth/me");
+
+        if (userResponse.data.user.team) {
+          // User has a team, go to dashboard
+          router.push("/dashboard");
+        } else {
+          // User doesn't have a team, go to team page
+          router.push("/team");
+        }
       }
     } catch (err) {
       setError(

@@ -19,6 +19,8 @@ const AuditLogSchema = new mongoose.Schema(
                 'task_comment_added',
                 'user_registered',
                 'user_login',
+                'team_create',
+                'team_join',
             ],
         },
         details: {

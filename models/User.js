@@ -28,6 +28,10 @@ const UserSchema = new mongoose.Schema(
             enum: ['user', 'admin'],
             default: 'user',
         },
+        team: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Team',
+        },
         avatar: {
             type: String,
             default: '',
