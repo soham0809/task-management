@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-export default function TaskFilters() {
+// Create a component that uses searchParams
+function TaskFiltersContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -207,5 +208,42 @@ export default function TaskFilters() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loader component for Suspense fallback
+function FiltersLoading() {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow mb-6 opacity-70">
+      <div className="animate-pulse flex flex-col space-y-4">
+        <div className="h-10 bg-gray-200 rounded w-full"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <div className="h-4 bg-gray-200 rounded mb-2 w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+          </div>
+          <div>
+            <div className="h-4 bg-gray-200 rounded mb-2 w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+          </div>
+          <div>
+            <div className="h-4 bg-gray-200 rounded mb-2 w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function TaskFilters() {
+  return (
+    <Suspense fallback={<FiltersLoading />}>
+      <TaskFiltersContent />
+    </Suspense>
   );
 }

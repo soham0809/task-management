@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import AuthLayout from "@/components/AuthLayout";
 import TaskForm from "@/components/TaskForm";
 import Link from "next/link";
 
-export default function NewTask() {
+// Create a separate component that uses searchParams
+function NewTaskContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assignToId = searchParams.get("assignTo");
@@ -161,5 +162,26 @@ export default function NewTask() {
         )}
       </div>
     </AuthLayout>
+  );
+}
+
+// Loader component for Suspense fallback
+function NewTaskLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-t-4 border-b-4 border-primary-600 rounded-full animate-spin mx-auto"></div>
+        <p className="mt-4 text-gray-700">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function NewTask() {
+  return (
+    <Suspense fallback={<NewTaskLoader />}>
+      <NewTaskContent />
+    </Suspense>
   );
 }
