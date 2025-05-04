@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import AuthLayout from "@/components/AuthLayout";
@@ -9,7 +9,8 @@ import TaskFilters from "@/components/TaskFilters";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function Tasks() {
+// Separate component that uses useSearchParams
+function TasksContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState(null);
@@ -246,5 +247,26 @@ export default function Tasks() {
         )}
       </div>
     </AuthLayout>
+  );
+}
+
+// Loading fallback for Suspense
+function TasksLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-t-4 border-b-4 border-primary-600 rounded-full animate-spin mx-auto"></div>
+        <p className="mt-4 text-gray-700">Loading tasks...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component wrapped with Suspense
+export default function Tasks() {
+  return (
+    <Suspense fallback={<TasksLoading />}>
+      <TasksContent />
+    </Suspense>
   );
 }
