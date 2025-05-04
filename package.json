@@ -15,6 +15,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.2",
     "@heroicons/react": "^2.2.0",
+    "autoprefixer": "^10.4.16",
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "cookie": "^1.0.2",
@@ -23,8 +24,10 @@
     "mongoose": "^8.14.1",
     "next": "^15.3.1",
     "next-auth": "^4.24.11",
+    "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-hook-form": "^7.56.1"
+    "react-hook-form": "^7.56.1",
+    "tailwindcss": "^3.4.17"
   }
 }
